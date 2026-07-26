@@ -1,0 +1,14 @@
+{
+    "TRENT": {
+        "entry_price": 4000.0,
+        "highest_close": 4150.0,
+        "qty": 25,
+        "setup_low": null
+    },
+    "SBIN": {
+        "entry_price": 950.0,
+        "highest_close": 980.0,
+        "qty": 105,
+        "setup_low": 930.0
+    }
+}

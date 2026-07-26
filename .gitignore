@@ -1,0 +1,14 @@
+.env
+access_token.txt
+.venv/
+env/
+pycache/
+*.pyc
+
+data/active_portfolio.json
+data/trade_history.json
+data/autopilot_active.txt
+
+
+.DS_Store
+Thumbs.db
