@@ -157,10 +157,20 @@ with st.sidebar:
         fyers = None
         
         try:
-            live_auth_url = generate_auth_url()
+            c_id = st.secrets["FYERS_CLIENT_ID"] if "FYERS_CLIENT_ID" in st.secrets else os.getenv("FYERS_CLIENT_ID")
+            s_key = st.secrets["FYERS_SECRET_KEY"] if "FYERS_SECRET_KEY" in st.secrets else os.getenv("FYERS_SECRET_KEY")
+            r_uri = st.secrets["FYERS_REDIRECT_URL"] if "FYERS_REDIRECT_URL" in st.secrets else os.getenv("FYERS_REDIRECT_URL")
+            
+            from fyers_apiv3 import fyersModel
+            auth_session = fyersModel.SessionModel(
+                client_id=c_id, secret_key=s_key, 
+                redirect_uri=r_uri, response_type="code", grant_type="authorization_code"
+            )
+            live_auth_url = auth_session.generate_authcode()
+            
             st.markdown(f'<a href="{live_auth_url}" target="_self" style="display: inline-block; padding: 10px 16px; background-color: #ff5722; color: white; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">🔗 Login with Fyers</a>', unsafe_allow_html=True)
-        except Exception:
-            st.error("⚠️ Missing Fyers API Secrets.")
+        except Exception as e:
+            st.error(f"⚠️ Missing Fyers API Secrets. Error: {e}")
 
     st.markdown("Strategy Universe: <span class='status-on'>Nifty 500</span>", unsafe_allow_html=True)
     st.markdown("---")
