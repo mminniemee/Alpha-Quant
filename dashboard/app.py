@@ -46,6 +46,48 @@ def ensure_portfolio_json():
 
 ensure_portfolio_json()
 
+if os.path.exists(AUTOPILOT_FLAG):
+        st.markdown("Autopilot Worker: <span class='status-on'>🟢 ACTIVE (RUNNING 24/7)</span>", unsafe_allow_html=True)
+else:
+        st.markdown("Autopilot Worker: <span class='status-off'>🔴 STANDBY</span>", unsafe_allow_html=True)
+        
+token_path = os.path.join(PROJECT_ROOT, "access_token.txt")
+    
+    # Catch Fyers Auth Code from URL
+auth_code = st.query_params.get("auth_code")
+if auth_code:
+    with st.spinner("Securing broker connection..."):
+        try:
+                # Local or Cloud Secret retrieval
+                client_id = st.secrets["FYERS_CLIENT_ID"] if "FYERS_CLIENT_ID" in st.secrets else os.getenv("FYERS_CLIENT_ID")
+                secret_key = st.secrets["FYERS_SECRET_KEY"] if "FYERS_SECRET_KEY" in st.secrets else os.getenv("FYERS_SECRET_KEY")
+                redirect_uri = st.secrets["FYERS_REDIRECT_URL"] if "FYERS_REDIRECT_URL" in st.secrets else os.getenv("FYERS_REDIRECT_URL")
+                
+                from fyers_apiv3 import fyersModel
+                session = fyersModel.SessionModel(
+                    client_id=client_id, secret_key=secret_key, 
+                    redirect_uri=redirect_uri, response_type="code", grant_type="authorization_code"
+                )
+                session.set_token(auth_code)
+                response = session.generate_token()
+                
+                if "access_token" in response:
+                    with open(token_path, "w") as f:
+                        f.write(response["access_token"])
+                    
+                    # FIX: Clear params safely without forcing a hard browser refresh loop
+                    st.query_params.clear() 
+                    st.success("✅ Connected! Please click any tab on the dashboard to continue.")
+                else:
+                    st.error(f"Authentication failed: {response}")
+                    st.query_params.clear()
+        except Exception as e:
+                st.error(f"OAuth Error: {e}")
+                st.query_params.clear()
+
+    # Connection Status
+    if os.path.exists(token_path):
+        st.markdown("Fyers V3 API Stream: <span class='status-on'>🟢 CONNECTED</span>", unsafe_allow_html=True)
 # Helper function to append manual/auto actions to permanent trade history logs
 def log_manual_decision(action, symbol, price, qty, reason):
     os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
